@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type Term = {
 	year: string;
@@ -20,22 +20,51 @@ type Member = {
 	picture1: string;
 	picture2: string;
 	podHistory: Pod[];
+	isEditing?: boolean;
 };
 
 interface ProfileProps {
 	member: Member;
+	onUpdate: (updatedMember: Member) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ member }) => {
+const Profile: React.FC<ProfileProps> = ({ member, onUpdate }) => {
 	const [isHovered, setIsHovered] = useState<boolean>(false);
-	const [isEditing, setIsEditing] = useState<boolean>(false);
+	const [isEditing, setIsEditing] = useState<boolean>(!!member.isEditing);
 
 	const [memberData, setMemberData] = useState<Member>(member);
 	const [jsonData, setJsonData] = useState<string>(JSON.stringify(member, null, 2));
 
+	// Update editing state when the member prop changes
+	useEffect(() => {
+		setIsEditing(!!member.isEditing);
+	}, [member.isEditing]);
+
 	const handleSave = () => {
-		setMemberData(JSON.parse(jsonData));
+		try {
+			const updatedData = JSON.parse(jsonData);
+			// Update local state
+			setMemberData(updatedData);
+			// Notify parent component
+			onUpdate({
+				...updatedData,
+				isEditing: false,
+			});
+			setIsEditing(false);
+		} catch (error) {
+			console.log(error);
+			alert('Invalid JSON. Please check your input.');
+		}
+	};
+
+	const handleCancel = () => {
+		// Reset to original data
+		setJsonData(JSON.stringify(memberData, null, 2));
 		setIsEditing(false);
+		onUpdate({
+			...memberData,
+			isEditing: false,
+		});
 	};
 
 	return (
@@ -48,8 +77,15 @@ const Profile: React.FC<ProfileProps> = ({ member }) => {
 							setJsonData(JSON.stringify(memberData, null, 2));
 						}
 						setIsEditing(!isEditing);
+						if (!isEditing) {
+							onUpdate({
+								...memberData,
+								isEditing: true,
+							});
+						}
 					}}
 					className='absolute top-2 right-2 p-2 text-gray-600 hover:text-gray-900'
+					title={isEditing ? 'Cancel' : 'Edit'}
 				>
 					<svg
 						xmlns='http://www.w3.org/2000/svg'
@@ -78,11 +114,17 @@ const Profile: React.FC<ProfileProps> = ({ member }) => {
 			{isEditing ? (
 				<div className='p-4'>
 					<textarea
-						className='w-full h-96 font-mono text-sm p-2 border border-gray-300 rounded-md'
+						className='w-full h-80 font-mono text-sm p-2 border border-gray-300 rounded-md'
 						value={jsonData}
 						onChange={(e) => setJsonData(e.target.value)}
 					/>
-					<div className='mt-4 flex justify-end'>
+					<div className='mt-4 flex justify-between'>
+						<button
+							onClick={handleCancel}
+							className='px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600'
+						>
+							Cancel
+						</button>
 						<button
 							onClick={handleSave}
 							className='px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700'
@@ -143,15 +185,15 @@ const Profile: React.FC<ProfileProps> = ({ member }) => {
 						<div className='mt-6'>
 							<h3 className='text-lg font-medium text-gray-900 text-center'>Pod History</h3>
 							<div className='mt-2 flex flex-col gap-2'>
-								{memberData.podHistory.map((pod) => (
+								{memberData.podHistory.map((pod, idx) => (
 									<span
-										key={`${pod.podName}-${pod.term.year}-${pod.term.semester}`}
+										key={`${pod.podName}-${pod.term.year}-${pod.term.semester}-${idx}`}
 										className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium ${
 											pod.podCupWinner ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'
 										}`}
 									>
 										<div className='flex flex-col flex-grow'>
-											<span className='truncate'>{pod.podName.replace('_', ' ')}</span>
+											<span className='truncate'>{pod.podName.replace(/_/g, ' ')}</span>
 											<span className='text-xs'>
 												{pod.term.semester} {pod.term.year}
 											</span>
