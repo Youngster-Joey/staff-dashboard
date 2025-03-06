@@ -1,5 +1,15 @@
 import logo from './logo.svg';
 import './App.css';
+import axios from 'axios';
+
+axios.get('http://localhost:5001/about')
+  .then(response => {
+    console.log(response.data);
+  })
+  .catch(error => {
+    console.error('There was an error!', error);
+  });
+
 
 function App() {
   return (
@@ -7,6 +17,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
+          {hi}
           Edit <code>src/App.js</code> and save to reload.
         </p>
         <a
