@@ -1,6 +1,5 @@
 **Starting up Staff Dashboard stuff**
-Spin up "backend"
-1) node backend/index.js
 
-Frontend:
+TO RUN:
+1) node backend/index.js
 2) npm run start
