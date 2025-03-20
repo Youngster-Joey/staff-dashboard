@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Profile from './Profile';
+import axios, {AxiosResponse} from 'axios';
 
 type Term = {
 	year: string;
@@ -41,9 +42,47 @@ const defaultNewMember: Member = {
 };
 
 const About = () => {
+	const [data, setData] = useState<string>('initial data');
+
+	const fetchInitial = async () => {
+		try {
+			const response = await axios.get('http://localhost:5001/about');
+			const data = response.data;
+			console.log(data);
+
+			// // GET handler
+			// export async function GET(request: NextRequest) {
+			// 	console.log(request);
+			// 	try {
+			// 		// Example data - in a real app this might come from a database
+			// 		const data = {
+			// 			message: 'API is working!',
+			// 			timestamp: new Date().toISOString(),
+			// 		};
+
+			// 		// Return successful response with the data
+			// 		return NextResponse.json(data, { status: 200 });
+			// 	} catch (error) {
+			// 		// Handle any errors
+			// 		console.error('GET request failed:', error);
+			// 		return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
+			// 	}
+			// }
+
+			setData(data[0].first_name || 'No message received');
+			return data;
+		} catch (error) {
+			console.error('Error fetching data:', error);
+		}
+	};
+
+	useEffect(() => {
+		fetchInitial();
+	}, []);
+
 	const initialMembers: Member[] = [
 		{
-			name: 'John Doe',
+			name: data,
 			role: 'Backend Engineer',
 			website: 'https://www.johndoe.com',
 			picture1: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000) + 1}/200/200`,
@@ -53,26 +92,6 @@ const About = () => {
 					podName: 'STAFF_DASHBOARD',
 					podCupWinner: true,
 					term: { year: '2023', semester: 'Fall' },
-				},
-				{
-					podName: 'SUGGESTED_CLASSES',
-					podCupWinner: false,
-					term: { year: '2024', semester: 'Spring' },
-				},
-				{
-					podName: 'SUGGESTED_CLASSES',
-					podCupWinner: false,
-					term: { year: '2024', semester: 'Spring' },
-				},
-				{
-					podName: 'SUGGESTED_CLASSES',
-					podCupWinner: false,
-					term: { year: '2024', semester: 'Spring' },
-				},
-				{
-					podName: 'SUGGESTED_CLASSES',
-					podCupWinner: false,
-					term: { year: '2024', semester: 'Spring' },
 				},
 				{
 					podName: 'SUGGESTED_CLASSES',
@@ -191,7 +210,8 @@ const About = () => {
 								d='M12 4v16m8-8H4'
 							/>
 						</svg>
-						Add New Team Member
+						{/* Add New Team Member */}
+						{data}
 					</button>
 				</div>
 
